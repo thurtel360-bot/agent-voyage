@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent de voyage</title>
+<meta name="description" content="Veille des séjours all inclusive en famille — Avril & Août 2027">
+<style>
+:root{
+  --bg:#f6f4ef;--card:#ffffff;--ink:#1d2430;--muted:#5d6675;--line:#e3dfd6;
+  --accent:#0f7c7a;--accent-soft:#e2f2f1;--good:#1f7a3a;--good-soft:#e5f4e9;
+  --bad:#b23b2e;--bad-soft:#fbe9e6;--warn:#9a6400;--warn-soft:#fdf2dc;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161c;--card:#1b2129;--ink:#e8ecf1;--muted:#9aa4b2;--line:#2b333d;
+  --accent:#4cc3bf;--accent-soft:#163331;--good:#62c482;--good-soft:#16301f;
+  --bad:#f08a7c;--bad-soft:#3a1d19;--warn:#e7b65a;--warn-soft:#352a12;}}
+:root[data-theme="dark"]{
+  --bg:#12161c;--card:#1b2129;--ink:#e8ecf1;--muted:#9aa4b2;--line:#2b333d;
+  --accent:#4cc3bf;--accent-soft:#163331;--good:#62c482;--good-soft:#16301f;
+  --bad:#f08a7c;--bad-soft:#3a1d19;--warn:#e7b65a;--warn-soft:#352a12;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 64px}
+header h1{font-size:1.6rem;margin:0 0 4px}
+.sub{color:var(--muted);margin:0}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0}
+select{font:inherit;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.82rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
+.chip.ok{color:var(--good);background:var(--good-soft);border-color:transparent}
+.chip.ko{color:var(--bad);background:var(--bad-soft);border-color:transparent}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:16px 0}
+.resume p{margin:4px 0}
+.alert{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 14px;margin:8px 0;font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:12px}
+.kpi{background:var(--accent-soft);border-radius:10px;padding:10px 12px}
+.kpi b{display:block;font-size:1.3rem}
+.kpi span{color:var(--muted);font-size:.85rem}
+h2{font-size:1.25rem;margin:0 0 2px}
+.tabs{display:flex;gap:6px;margin:10px 0}
+.tabs button{font:inherit;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tbl{width:100%;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:820px}
+th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pos{color:var(--good)} .neg{color:var(--bad)}
+.var-down{color:var(--good)} .var-up{color:var(--bad)}
+.tag{font-size:.75rem;padding:2px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.small{color:var(--muted);font-size:.85rem}
+a{color:var(--accent)}
+.links a{display:inline-block;margin:0 8px 2px 0;white-space:nowrap}
+tr.over td{opacity:.65}
+.chart svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;font-size:.85rem;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:3px;vertical-align:middle;margin-right:5px}
+ul.notes{margin:0;padding-left:18px;color:var(--muted)}
+.err{color:var(--bad)}
+@media (max-width:640px){header h1{font-size:1.3rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="titre">Agent de voyage</h1>
+    <p class="sub" id="voyageurs">Veille all inclusive en famille</p>
+  </header>
+
+  <div class="bar">
+    <label class="small" for="run">Veille du</label>
+    <select id="run"></select>
+    <div class="chips" id="connecteurs"></div>
+  </div>
+
+  <section class="card resume" id="resume"></section>
+  <div id="periodes"></div>
+
+  <section class="card chart">
+    <h2>Évolution du meilleur prix all inclusive</h2>
+    <p class="small">Prix total le plus bas relevé chaque jour (offres avec formule AI confirmée), d'après l'historique.</p>
+    <div class="legend"><span><i style="background:var(--accent)"></i>Avril</span><span><i style="background:var(--warn)"></i>Août</span><span><i style="background:var(--bad)"></i>Budget</span></div>
+    <div id="chart"></div>
+  </section>
+
+  <section class="card">
+    <h2>Notes</h2>
+    <ul class="notes" id="notes"></ul>
+  </section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const eur = n => n.toLocaleString('fr-FR') + ' €';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fdate = d => d.split('-').reverse().join('/');
+
+async function getJSON(p){ const r = await fetch(p, {cache:'no-store'}); if(!r.ok) throw new Error(p); return r.json(); }
+
+function renderRun(run){
+  document.title = run.titre;
+  $('#titre').textContent = run.titre;
+  $('#voyageurs').textContent = `${run.voyageurs} · budget ${eur(run.budget)} · 7 nuits · vols directs ≤ 3 h depuis Paris`;
+  $('#connecteurs').innerHTML = Object.entries(run.connecteurs).map(([k,v]) =>
+    `<span class="chip ${v?'ok':'ko'}">${v?'✓':'✗'} ${esc(k)}</span>`).join('');
+
+  const kpis = run.periodes.map(p => {
+    const best = p.offres[0]; const n = p.offres.filter(o => o.total <= run.budget).length;
+    return `<div class="kpi"><span>${esc(p.titre)} — meilleur prix</span><b>${best?eur(best.total):'—'}</b><span>${best?esc(best.hotel):''} · ${n} offre(s) dans le budget</span></div>`;
+  }).join('');
+  $('#resume').innerHTML = run.resume.map(l => `<p>${esc(l)}</p>`).join('') +
+    (run.alertes||[]).map(a => `<div class="alert">🔔 ${esc(a)}</div>`).join('') +
+    `<div class="kpis">${kpis}</div>`;
+
+  $('#periodes').innerHTML = run.periodes.map(p => `
+    <section class="card" data-p="${p.id}">
+      <h2>${esc(p.titre)}</h2><p class="small">${esc(p.sous_titre)}</p>
+      <div class="tabs">
+        <button aria-pressed="true" data-f="top">Top 8</button>
+        <button aria-pressed="false" data-f="budget">Dans le budget</button>
+        <button aria-pressed="false" data-f="all">Toutes (${p.offres.length})</button>
+      </div>
+      <div class="tbl"></div>
+    </section>`).join('');
+  run.periodes.forEach(p => {
+    const sec = document.querySelector(`[data-p="${p.id}"]`);
+    const draw = f => {
+      let rows = p.offres;
+      if (f==='top') rows = rows.slice(0,8);
+      if (f==='budget') rows = rows.filter(o => o.total <= run.budget);
+      sec.querySelector('.tbl').innerHTML = table(rows, run.budget);
+      sec.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.f===f));
+    };
+    sec.querySelectorAll('.tabs button').forEach(b => b.onclick = () => draw(b.dataset.f));
+    draw('top');
+  });
+  $('#notes').innerHTML = (run.notes||[]).map(n => `<li>${esc(n)}</li>`).join('');
+}
+
+function table(rows, budget){
+  if(!rows.length) return '<p class="small">Aucune offre.</p>';
+  return `<table><thead><tr><th>#</th><th>Destination</th><th>Hôtel</th><th>Dates</th><th>Total</th><th>Variation</th><th>Statut AI</th><th>Type</th><th>Vol</th><th>Marge</th><th>Liens</th></tr></thead><tbody>` +
+  rows.map((o,i) => {
+    const v = o.variation||''; const vc = v.startsWith('▼')?'var-down':v.startsWith('▲')?'var-up':'';
+    return `<tr class="${o.total>budget?'over':''}">
+      <td>${i+1}</td><td>${esc(o.destination)}</td>
+      <td><b>${esc(o.hotel)}</b> <span class="small">${o.note?o.note.toFixed(1)+'/10':''}</span>${o.remarque?`<div class="small">${esc(o.remarque)}</div>`:''}</td>
+      <td>${esc(o.dates)}</td><td class="num"><b>${eur(o.total)}</b></td>
+      <td class="${vc}">${esc(v)}</td><td>${esc(o.statut_ai)}</td><td><span class="tag">${esc(o.type)}</span></td>
+      <td class="small">${esc(o.vol)}</td>
+      <td class="num ${o.marge>=0?'pos':'neg'}">${o.marge>=0?'+':''}${eur(o.marge)}</td>
+      <td class="links">${(o.liens||[]).map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('') || '<span class="small">—</span>'}</td></tr>`;
+  }).join('') + '</tbody></table>';
+}
+
+function parseCSV(t){
+  const lines = t.trim().split(/\r?\n/); const head = lines.shift().split(',');
+  return lines.map(l => { const out=[]; let cur='', q=false;
+    for (const c of l){ if(c==='"'){q=!q;continue} if(c===','&&!q){out.push(cur);cur='';continue} cur+=c }
+    out.push(cur); return Object.fromEntries(head.map((h,i)=>[h,out[i]])); });
+}
+function minByDate(rows){
+  const m = {};
+  rows.filter(r => r.formule_ai_confirmee==='oui').forEach(r => { const t=+r.total_eur; if(!isNaN(t)&&t>0) m[r.date]=Math.min(m[r.date]??Infinity,t); });
+  return Object.entries(m).sort(([a],[b]) => a.localeCompare(b));
+}
+async function renderChart(budget){
+  try{
+    const [a,b] = await Promise.all(['data/historique_avril.csv','data/historique_aout.csv'].map(p => fetch(p,{cache:'no-store'}).then(r=>r.text())));
+    const series = [{s:minByDate(parseCSV(a)),c:'var(--accent)'},{s:minByDate(parseCSV(b)),c:'var(--warn)'}];
+    const dates = [...new Set(series.flatMap(x=>x.s.map(d=>d[0])))].sort();
+    const vals = series.flatMap(x=>x.s.map(d=>d[1])).concat(budget);
+    const W=900,H=280,P={l:56,r:16,t:16,b:36};
+    const lo=Math.floor(Math.min(...vals)/250)*250, hi=Math.ceil(Math.max(...vals)/250)*250;
+    const x=d=>P.l+(dates.length<2?0:dates.indexOf(d)/(dates.length-1))*(W-P.l-P.r);
+    const y=v=>H-P.b-(v-lo)/(hi-lo||1)*(H-P.t-P.b);
+    let g='';
+    for(let v=lo;v<=hi;v+=Math.max(250,Math.round((hi-lo)/5/250)*250)) g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${P.l-8}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="var(--muted)">${v.toLocaleString('fr-FR')}</text>`;
+    const step=Math.ceil(dates.length/8);
+    dates.forEach((d,i)=>{ if(i%step===0||i===dates.length-1) g+=`<text x="${x(d)}" y="${H-12}" text-anchor="middle" font-size="12" fill="var(--muted)">${fdate(d).slice(0,5)}</text>`; });
+    g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y(budget)}" y2="${y(budget)}" stroke="var(--bad)" stroke-dasharray="5 4"/>`;
+    series.forEach(({s,c})=>{ if(!s.length) return;
+      g+=`<polyline fill="none" stroke="${c}" stroke-width="2.5" points="${s.map(([d,v])=>x(d)+','+y(v)).join(' ')}"/>`;
+      g+=s.map(([d,v])=>`<circle cx="${x(d)}" cy="${y(v)}" r="3.5" fill="${c}"><title>${fdate(d)} : ${v.toLocaleString('fr-FR')} €</title></circle>`).join(''); });
+    $('#chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution du meilleur prix">${g}</svg>`;
+  }catch(e){ $('#chart').innerHTML='<p class="small">Historique indisponible.</p>'; }
+}
+
+(async () => {
+  try{
+    let runs = []; try{ runs = await getJSON('data/runs/index.json'); }catch(e){}
+    runs.sort().reverse();
+    const sel = $('#run');
+    sel.innerHTML = runs.length ? runs.map(d => `<option value="${d}">${fdate(d)}</option>`).join('') : '<option>dernière</option>';
+    const load = async d => renderRun(await getJSON(d ? `data/runs/${d}.json` : 'data/latest.json'));
+    sel.onchange = () => load(sel.value);
+    const latest = await getJSON('data/latest.json');
+    renderRun(latest);
+    if (runs.includes(latest.date)) sel.value = latest.date;
+    renderChart(latest.budget);
+  }catch(e){ $('#resume').innerHTML = '<p class="err">Impossible de charger les résultats (data/latest.json).</p>'; }
+})();
+</script>
+</body>
+</html>
